@@ -55,3 +55,6 @@ main {
   background: url("https://upload.wikimedia.org/wikipedia/en/1/18/2025_IPL_logo.png");
   background-size: cover;
 }
+.explore-btn{
+  background-color: red;
+}
