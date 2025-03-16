@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IPL Players</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(to right, #afa3a0, #453a33);
+        text-align: center;
+        padding: 20px;
+      }
+      h1 {
+        color: white;
+      }
+      .search-container {
+        margin: 20px auto;
+        width: 300px;
+      }
+      .search-container input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        font-size: 16px;
+      }
+      .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 20px;
+        padding: 20px;
+        width: 80%;
+        margin: auto;
+      }
+      .player-card {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        font-weight: bold;
+      }
+      .player-info {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        margin-top: 20px;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>IPL Players</h1>
+    <div class="search-container">
+      <input
+        type="text"
+        id="searchBox"
+        placeholder="Search for a player..."
+        oninput="searchPlayer()"
+      />
+    </div>
+    <div class="grid-container" id="playerGrid"></div>
+    <div class="player-info" id="playerInfo"></div>
+
+    <script>
+      let playersData = [];
+
+      async function fetchPlayers() {
+        const response = await fetch("http://localhost:8000/players");
+        playersData = await response.json();
+        console.log(playersData);
+        displayPlayers(playersData);
+      }
+
+      function displayPlayers(players) {
+        const playerGrid = document.getElementById("playerGrid");
+        playerGrid.innerHTML = "";
+        players.forEach((player) => {
+          const playerCard = document.createElement("div");
+          playerCard.className = "player-card";
+          playerCard.textContent = player.player_name;
+          playerCard.onclick = () => showPlayerInfo(player);
+          playerGrid.appendChild(playerCard);
+        });
+      }
+
+      function searchPlayer() {
+        const query = document.getElementById("searchBox").value.toLowerCase();
+        const filteredPlayers = playersData.filter((player) =>
+          player.player_name.toLowerCase().includes(query)
+        );
+        displayPlayers(filteredPlayers);
+      }
+
+      async function fetchPlayerTotalRuns(playerId) {
+        console.log("Sending request with:", { playerId });
+
+        const response = await fetch("http://localhost:8000/player-runs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playerId }),
+        });
+
+        console.log("Response received:", response);
+
+        playersData = await response.json();
+        console.log("Parsed JSON response:", playersData.total_runs);
+        return playersData.total_runs;
+      }
+
+      async function showPlayerInfo(player) {
+        const playerInfo = document.getElementById("playerInfo");
+        console.log(player);
+        playerInfo.innerHTML = `<h3>${
+          player.player_name
+        }</h3><p>Total Runs: ${await fetchPlayerTotalRuns(
+          player.player_id
+        )}</pid>`;
+        playerInfo.style.display = "block";
+      }
+
+      fetchPlayers();
+    </script>
+  </body>
+</html>
