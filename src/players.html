@@ -4,61 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>IPL Players</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background: linear-gradient(to right, #2c3e50, #4ca1af);
-        text-align: center;
-        padding: 20px;
-        color: white;
-      }
-      h1 {
-        margin-bottom: 20px;
-      }
-      .search-container {
-        background: rgba(255, 255, 255, 0.2);
-        padding: 15px;
-        border-radius: 10px;
-        width: 50%;
-        margin: auto;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      }
-      .search-container input {
-        width: 90%;
-        padding: 12px;
-        border-radius: 5px;
-        border: none;
-        font-size: 16px;
-        outline: none;
-      }
-      .grid-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 20px;
-        padding: 20px;
-        width: 80%;
-        margin: auto;
-      }
-      .player-card {
-        background: rgba(255, 255, 255, 0.2);
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        font-weight: bold;
-        cursor: pointer;
-        transition: transform 0.3s;
-      }
-      .player-card:hover {
-        transform: scale(1.05);
-      }
-      .player-info {
-        background: rgba(255, 255, 255, 0.3);
-        padding: 10px;
-        border-radius: 8px;
-        margin-top: 10px;
-        display: none;
-      }
-    </style>
+    <link rel="stylesheet" href="./styles/players.css" />
   </head>
   <body>
     <h1>IPL Players</h1>
@@ -72,70 +18,6 @@
     </div>
     <div class="grid-container" id="playerGrid"></div>
 
-    <script>
-      let playersData = [];
-      let activePlayerCard = null;
-
-      async function fetchPlayers() {
-        const response = await fetch("http://localhost:8000/players");
-        playersData = await response.json();
-        displayPlayers(playersData);
-      }
-
-      function displayPlayers(players) {
-        const playerGrid = document.getElementById("playerGrid");
-        playerGrid.innerHTML = "";
-
-        players.forEach((player) => {
-          const playerCard = document.createElement("div");
-          playerCard.className = "player-card";
-          playerCard.innerHTML = `<p>${player.player_name}</p>`;
-          
-          const playerInfo = document.createElement("div");
-          playerInfo.className = "player-info";
-          playerInfo.id = `info-${player.player_id}`;
-          playerCard.appendChild(playerInfo);
-          
-          playerCard.onclick = () => togglePlayerInfo(player, playerInfo);
-          playerGrid.appendChild(playerCard);
-        });
-      }
-
-      function searchPlayer() {
-        const query = document.getElementById("searchBox").value.toLowerCase();
-        const filteredPlayers = playersData.filter((player) =>
-          player.player_name.toLowerCase().includes(query)
-        );
-        displayPlayers(filteredPlayers);
-      }
-
-      async function fetchPlayerTotalRuns(playerId) {
-        const response = await fetch("http://localhost:8000/player-runs", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ playerId }),
-        });
-        const playerData = await response.json();
-        return playerData.total_runs;
-      }
-
-      async function togglePlayerInfo(player, playerInfo) {
-        if (activePlayerCard && activePlayerCard !== playerInfo) {
-          activePlayerCard.style.display = "none";
-        }
-        if (playerInfo.style.display === "block") {
-          playerInfo.style.display = "none";
-          activePlayerCard = null;
-        } else {
-          playerInfo.innerHTML = `<p>Total Runs: ${await fetchPlayerTotalRuns(
-            player.player_id
-          )}</p>`;
-          playerInfo.style.display = "block";
-          activePlayerCard = playerInfo;
-        }
-      }
-
-      fetchPlayers();
-    </script>
+    <script src="./scripts/players.js"></script>
   </body>
 </html>
