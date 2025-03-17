@@ -16,7 +16,6 @@ await client.connect();
 serve(
   async (req) => {
     const url = new URL(req.url);
-    console.log(`Received request: ${req.method} ${url.pathname}`);
 
     // Handle CORS Preflight Request
     if (req.method === "OPTIONS") {
@@ -34,6 +33,7 @@ serve(
     if (req.method === "GET" && url.pathname === "/teams") {
       try {
         const result = await client.queryObject("SELECT * FROM team");
+
         return new Response(JSON.stringify(result.rows), {
           status: 200,
           headers: {
@@ -51,12 +51,10 @@ serve(
         );
       }
     }
-
-    // Fetch player runs by playerId
-    if (req.method === "POST" && url.pathname === "/player-runs") {
+    //fetch player info
+    if (req.method === "POST" && url.pathname === "/player-info") {
       try {
         const body = await req.json();
-        console.log("Received request body:", body);
 
         if (!body.playerId) {
           return new Response(JSON.stringify({ error: "Missing playerId" }), {
@@ -64,23 +62,29 @@ serve(
           });
         }
 
-        // Fetch total runs from the database
-        const result = await client.queryObject(
-          "SELECT SUM(batter_runs)::int AS total_runs FROM delivery where batter_id = $1",
+        const totalRuns = await client.queryObject(
+          "SELECT SUM(batter_runs)::int AS totalRuns FROM delivery where batter_id = $1",
           [body.playerId]
         );
 
-        console.log("result", result);
-        return new Response(JSON.stringify(result.rows[0]), {
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "http://localhost:5500",
-          },
-        });
-      } catch (error) {
-        console.error("Error fetching player runs:", error);
+        const totalWickets = await client.queryObject(
+          "SELECT count(*)::int AS totalWickets from dismissal where dismissed_by = $1",
+          [body.playerId]
+        );
+
         return new Response(
-          JSON.stringify({ error: "Failed to fetch player runs" }),
+          JSON.stringify({ ...totalRuns.rows[0], ...totalWickets.rows[0] }),
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "http://localhost:5500",
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Error fetching player info:", error);
+        return new Response(
+          JSON.stringify({ error: "Failed to fetch player info" }),
           {
             status: 500,
           }
